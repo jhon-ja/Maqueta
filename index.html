@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SENSO PULSO | Demo interactiva</title>
+<meta name="theme-color" content="#1D1D2E"/>
+<meta name="description" content="SENSO PULSO: demostración interactiva de alertas por sonidos"/>
+<link rel="manifest" href="manifest.webmanifest"/>
+<link rel="icon" type="image/svg+xml" href="icon.svg"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#111;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:20px 12px;}
+.top-bar{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+.brand{font-size:12px;font-weight:700;letter-spacing:0.18em;color:#888;}
+.toggle-wrap{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.07);border-radius:20px;padding:5px 12px;}
+.toggle-lbl{font-size:11px;color:#777;}
+.sw{width:38px;height:22px;border-radius:11px;background:#5DCAA5;position:relative;cursor:pointer;border:none;outline:none;transition:background .2s;}
+.sw-knob{width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:3px;transition:left .2s;}
+
+/* PHONE */
+.phone{width:315px;border-radius:40px;padding:10px;border:2px solid #2a2a3e;}
+.dark .phone{background:#1a1a2e;}
+.light .phone{background:#c8c8c2;}
+.screen{border-radius:30px;overflow:hidden;height:620px;display:flex;flex-direction:column;position:relative;}
+.dark .screen{background:#1D1D2E;}
+.light .screen{background:#F5F5F0;}
+
+/* VIEWS */
+.view{display:none;flex-direction:column;height:100%;overflow:hidden;}
+.view.active{display:flex;}
+.scrollable{flex:1;overflow-y:auto;padding-bottom:4px;}
+.scrollable::-webkit-scrollbar{width:0;}
+
+/* TOPBAR */
+.topbar{padding:14px 16px 8px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar-icons{display:flex;align-items:center;gap:8px;}
+.tb-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;}
+.dark .tb-icon{background:#252538;color:#aaa;}
+.light .tb-icon{background:#e0e0da;color:#555;}
+.bell-wrap{position:relative;}
+.notif-dot{width:8px;height:8px;background:#5DCAA5;border-radius:50%;position:absolute;top:5px;right:5px;}
+.greeting-name{font-size:17px;font-weight:700;}
+.dark .greeting-name{color:#fff;}
+.light .greeting-name{color:#1D1D2E;}
+.connected{display:flex;align-items:center;gap:6px;font-size:12px;padding:0 16px 10px;flex-shrink:0;}
+.dark .connected{color:#aaa;}
+.light .connected{color:#777;}
+.dot-green{width:7px;height:7px;background:#5DCAA5;border-radius:50%;flex-shrink:0;}
+
+/* CARDS */
+.card{margin:0 12px 10px;border-radius:16px;padding:14px;}
+.dark .card{background:#252538;}
+.light .card{background:#fff;border:0.5px solid #e0e0da;}
+
+/* BATTERY */
+.battery-card{display:flex;align-items:center;justify-content:space-between;}
+.bat-pct{font-size:32px;font-weight:700;color:#5DCAA5;}
+.bat-label{font-size:12px;margin-top:2px;}
+.dark .bat-label{color:#aaa;}
+.light .bat-label{color:#888;}
+.bat-bar-bg{height:5px;border-radius:3px;margin-top:8px;width:110px;}
+.dark .bat-bar-bg{background:#333;}
+.light .bat-bar-bg{background:#ddd;}
+.bat-bar{height:5px;border-radius:3px;background:#5DCAA5;width:85%;}
+.bat-sync{font-size:10px;margin-top:6px;display:flex;align-items:center;gap:4px;}
+.dark .bat-sync{color:#666;}
+.light .bat-sync{color:#bbb;}
+
+/* SOUND ROW */
+.sound-row{display:flex;align-items:center;gap:12px;cursor:pointer;}
+.s-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.dark .s-icon{background:#2e2e48;}
+.light .s-icon{background:#f0f0ea;}
+.s-name{font-size:15px;font-weight:600;}
+.dark .s-name{color:#fff;}
+.light .s-name{color:#1D1D2E;}
+.s-time{font-size:11px;margin-top:2px;}
+.dark .s-time{color:#666;}
+.light .s-time{color:#aaa;}
+.chev{font-size:18px;margin-left:auto;}
+.dark .chev{color:#555;}
+.light .chev{color:#bbb;}
+.s-lbl{font-size:10px;}
+.dark .s-lbl{color:#888;}
+.light .s-lbl{color:#aaa;}
+
+/* QUICK GRID */
+.quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 12px 10px;}
+.quick-card{border-radius:16px;padding:14px;cursor:pointer;}
+.dark .quick-card{background:#252538;}
+.light .quick-card{background:#fff;border:0.5px solid #e0e0da;}
+.qc-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:8px;}
+.dark .qc-icon{background:#2e2e48;}
+.light .qc-icon{background:#f0f0ea;}
+.qc-title{font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
+.dark .qc-title{color:#fff;}
+.light .qc-title{color:#1D1D2E;}
+.qc-desc{font-size:10px;margin-top:4px;line-height:1.4;}
+.dark .qc-desc{color:#888;}
+.light .qc-desc{color:#999;}
+
+/* STATUS */
+.status-row{margin:0 12px 10px;border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;}
+.dark .status-row{background:#252538;}
+.light .status-row{background:#fff;border:0.5px solid #e0e0da;}
+.st-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.dark .st-icon{background:#1a3a2e;}
+.light .st-icon{background:#e1f5ee;}
+.st-title{font-size:13px;font-weight:700;color:#5DCAA5;}
+.st-desc{font-size:10px;margin-top:2px;line-height:1.4;}
+.dark .st-desc{color:#888;}
+.light .st-desc{color:#999;}
+.wave-txt{flex:1;text-align:right;font-size:18px;color:#5DCAA5;letter-spacing:-2px;}
+
+/* BOTTOM NAV */
+.bottomnav{display:flex;align-items:center;padding:6px 0 10px;flex-shrink:0;}
+.dark .bottomnav{border-top:0.5px solid rgba(255,255,255,0.07);}
+.light .bottomnav{border-top:0.5px solid rgba(0,0,0,0.08);}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;font-size:9px;padding:4px 0;}
+.dark .nav-item{color:#555;}
+.light .nav-item{color:#bbb;}
+.nav-item.active{color:#5DCAA5;}
+.nav-item i{font-size:20px;}
+.nav-center{width:46px;height:46px;background:#5DCAA5;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-top:-10px;flex-shrink:0;}
+.nav-center i{font-size:24px;color:#fff;}
+
+/* STEP HEADER */
+.step-header{display:flex;align-items:center;gap:12px;padding:14px 16px 8px;flex-shrink:0;}
+.back-btn{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:19px;flex-shrink:0;}
+.dark .back-btn{background:#252538;color:#aaa;}
+.light .back-btn{background:#e0e0da;color:#555;}
+.step-title{font-size:16px;font-weight:700;}
+.dark .step-title{color:#fff;}
+.light .step-title{color:#1D1D2E;}
+
+/* SECTION LABEL */
+.sec-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:6px 16px 6px;}
+.dark .sec-lbl{color:#555;}
+.light .sec-lbl{color:#bbb;}
+
+/* SEARCH BAR */
+.search-bar{margin:4px 12px 8px;border-radius:12px;display:flex;align-items:center;gap:8px;padding:9px 12px;}
+.dark .search-bar{background:#252538;}
+.light .search-bar{background:#fff;border:0.5px solid #e0e0da;}
+.search-bar i{font-size:16px;}
+.dark .search-bar i{color:#555;}
+.light .search-bar i{color:#bbb;}
+.search-bar input{background:none;border:none;outline:none;font-size:13px;flex:1;}
+.dark .search-bar input{color:#fff;}
+.light .search-bar input{color:#1D1D2E;}
+.dark .search-bar input::placeholder{color:#555;}
+.light .search-bar input::placeholder{color:#bbb;}
+
+/* FILTER CHIPS */
+.filter-row{display:flex;gap:6px;padding:0 12px 10px;overflow-x:auto;flex-shrink:0;}
+.filter-row::-webkit-scrollbar{height:0;}
+.chip{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;border:1.5px solid transparent;}
+.chip.active{background:#5DCAA5;color:#fff;border-color:#5DCAA5;}
+.dark .chip:not(.active){background:#252538;color:#aaa;border-color:#333;}
+.light .chip:not(.active){background:#fff;color:#888;border-color:#e0e0da;}
+.chip.emergencia{border-color:#E24B4A;color:#E24B4A;}
+.dark .chip.emergencia:not(.active){background:#2a1a1a;}
+.light .chip.emergencia:not(.active){background:#fff5f5;}
+.chip.hogar{border-color:#8888AA;color:#8888AA;}
+.dark .chip.hogar:not(.active){background:#1e1e2e;}
+.light .chip.hogar:not(.active){background:#f5f5ff;}
+.chip.personalizados,.chip.falsas{border-color:#EF9F27;color:#EF9F27;}
+.dark .chip.personalizados:not(.active),.dark .chip.falsas:not(.active){background:#2a2010;}
+.light .chip.personalizados:not(.active),.light .chip.falsas:not(.active){background:#fffaf0;}
+
+/* MAIN BTN */
+.btn-main{width:calc(100% - 32px);margin:8px 16px 6px;background:#5DCAA5;border:none;border-radius:14px;padding:14px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;}
+.btn-main:disabled{opacity:0.4;cursor:default;}
+.btn-secondary{background:none;border:none;color:#5DCAA5;font-size:13px;cursor:pointer;padding:8px;}
+
+/* =================== SONIDOS =================== */
+.sound-card{margin:0 12px 8px;border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;position:relative;}
+.dark .sound-card{background:#252538;}
+.light .sound-card{background:#fff;border:0.5px solid #e0e0da;}
+.sc-icon-wrap{position:relative;width:48px;height:48px;flex-shrink:0;}
+.sc-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.pri-dot{width:10px;height:10px;border-radius:50%;position:absolute;top:-2px;right:-2px;border:2px solid;}
+.dark .pri-dot{border-color:#252538;}
+.light .pri-dot{border-color:#fff;}
+.pri-baja{background:#5DCAA5;}
+.pri-media{background:#EF9F27;}
+.pri-alta{background:#F07030;}
+.pri-critica{background:#E24B4A;}
+.sc-name{font-size:14px;font-weight:700;}
+.dark .sc-name{color:#fff;}
+.light .sc-name{color:#1D1D2E;}
+.sc-loc{font-size:11px;display:flex;align-items:center;gap:3px;margin-top:2px;}
+.dark .sc-loc{color:#888;}
+.light .sc-loc{color:#aaa;}
+.sc-precision{font-size:12px;font-weight:700;color:#5DCAA5;margin-top:4px;}
+.sc-pulses{display:flex;align-items:center;gap:4px;margin-top:4px;}
+.pulse-dot{width:9px;height:9px;border-radius:50%;background:#5DCAA5;}
+.pulse-line{width:22px;height:4px;border-radius:2px;background:#5DCAA5;}
+.sc-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin-left:auto;}
+.sw-toggle{width:38px;height:22px;border-radius:11px;position:relative;cursor:pointer;border:none;outline:none;transition:background .2s;}
+.sw-toggle.on{background:#5DCAA5;}
+.sw-toggle.off{background:#444;}
+.light .sw-toggle.off{background:#ccc;}
+.sw-toggle-knob{width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:3px;transition:left .2s;}
+.sw-toggle.on .sw-toggle-knob{left:19px;}
+.sw-toggle.off .sw-toggle-knob{left:3px;}
+.menu-btn{background:none;border:none;cursor:pointer;font-size:18px;padding:2px 4px;}
+.dark .menu-btn{color:#555;}
+.light .menu-btn{color:#bbb;}
+
+/* CONTEXT MENU */
+.ctx-menu{position:absolute;right:12px;top:40px;border-radius:12px;padding:4px 0;z-index:100;min-width:140px;box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+.dark .ctx-menu{background:#2e2e48;}
+.light .ctx-menu{background:#fff;border:0.5px solid #e0e0da;}
+.ctx-item{padding:10px 16px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.dark .ctx-item{color:#fff;}
+.light .ctx-item{color:#1D1D2E;}
+.dark .ctx-item:hover{background:#3a3a58;}
+.light .ctx-item:hover{background:#f5f5f0;}
+.ctx-item.danger{color:#E24B4A!important;}
+
+/* SUMMARY CARD */
+.summary-card{margin:8px 12px 12px;border-radius:16px;padding:14px;}
+.dark .summary-card{background:#252538;}
+.light .summary-card{background:#fff;border:0.5px solid #e0e0da;}
+.sum-title{font-size:11px;font-weight:600;margin-bottom:8px;}
+.dark .sum-title{color:#888;}
+.light .sum-title{color:#aaa;}
+.sum-pct{font-size:28px;font-weight:700;color:#5DCAA5;}
+.sum-sub{font-size:10px;margin-top:2px;}
+.dark .sum-sub{color:#888;}
+.light .sum-sub{color:#aaa;}
+
+/* EMPTY STATE */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;text-align:center;gap:10px;}
+.empty-icon{font-size:48px;opacity:0.3;color:#5DCAA5;}
+.empty-title{font-size:15px;font-weight:700;}
+.dark .empty-title{color:#fff;}
+.light .empty-title{color:#1D1D2E;}
+.empty-desc{font-size:12px;line-height:1.6;}
+.dark .empty-desc{color:#888;}
+.light .empty-desc{color:#aaa;}
+.empty-suggestions{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:4px;}
+.sug-chip{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;}
+.dark .sug-chip{background:#252538;color:#aaa;}
+.light .sug-chip{background:#e8e8e2;color:#666;}
+.btn-add-sound{background:#5DCAA5;color:#fff;border:none;border-radius:12px;padding:12px 28px;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px;}
+
+/* =================== HISTORIAL =================== */
+.hist-summary{margin:4px 12px 8px;border-radius:16px;padding:14px;}
+.dark .hist-summary{background:#252538;}
+.light .hist-summary{background:#fff;border:0.5px solid #e0e0da;}
+.hist-sum-title{font-size:11px;font-weight:600;margin-bottom:6px;}
+.dark .hist-sum-title{color:#888;}
+.light .hist-sum-title{color:#aaa;}
+.hist-wave{width:100%;height:36px;display:flex;align-items:center;margin-bottom:10px;}
+.hist-stats{display:flex;gap:0;}
+.hist-stat{flex:1;text-align:center;}
+.hist-stat-num{font-size:20px;font-weight:700;}
+.dark .hist-stat-num{color:#fff;}
+.light .hist-stat-num{color:#1D1D2E;}
+.hist-stat-num.green{color:#5DCAA5;}
+.hist-stat-num.orange{color:#EF9F27;}
+.hist-stat-lbl{font-size:9px;margin-top:2px;}
+.dark .hist-stat-lbl{color:#888;}
+.light .hist-stat-lbl{color:#aaa;}
+.hist-divider{width:1px;background:#333;margin:4px 0;}
+.light .hist-divider{background:#e0e0da;}
+.date-label{font-size:12px;font-weight:700;padding:8px 16px 4px;}
+.dark .date-label{color:#aaa;}
+.light .date-label{color:#888;}
+.hist-card{margin:0 12px 6px;border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;position:relative;}
+.dark .hist-card{background:#252538;}
+.light .hist-card{background:#fff;border:0.5px solid #e0e0da;}
+.hist-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;position:absolute;left:-16px;top:50%;transform:translateY(-50%);}
+.hist-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.hist-name{font-size:13px;font-weight:700;}
+.dark .hist-name{color:#fff;}
+.light .hist-name{color:#1D1D2E;}
+.hist-loc{font-size:10px;display:flex;align-items:center;gap:3px;margin-top:2px;}
+.dark .hist-loc{color:#888;}
+.light .hist-loc{color:#aaa;}
+.hist-precision{font-size:11px;font-weight:700;color:#5DCAA5;margin-top:3px;}
+.hist-time{font-size:10px;margin-left:auto;align-self:flex-start;padding-top:2px;}
+.dark .hist-time{color:#666;}
+.light .hist-time{color:#bbb;}
+.hist-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;margin-top:4px;display:inline-block;}
+.badge-green{background:#1a3a2e;color:#5DCAA5;}
+.light .badge-green{background:#e1f5ee;color:#0F6E56;}
+.badge-yellow{background:#2a2010;color:#EF9F27;}
+.light .badge-yellow{background:#FFF8E8;color:#b36800;}
+.badge-orange{background:#2a1800;color:#F07030;}
+.light .badge-orange{background:#FFF0E8;color:#b34000;}
+.badge-red{background:#2a1010;color:#E24B4A;}
+.light .badge-red{background:#FFF0F0;color:#b30000;}
+.badge-emerg{background:#E24B4A;color:#fff;}
+.hist-groups{padding:0 12px;}
+
+/* =================== DISPOSITIVOS =================== */
+.dev-main-card{margin:0 12px 10px;border-radius:16px;padding:14px;}
+.dark .dev-main-card{background:#252538;}
+.light .dev-main-card{background:#fff;border:0.5px solid #e0e0da;}
+.dev-main-label{font-size:11px;font-weight:700;color:#5DCAA5;margin-bottom:4px;}
+.dev-main-name{font-size:18px;font-weight:700;}
+.dark .dev-main-name{color:#fff;}
+.light .dev-main-name{color:#1D1D2E;}
+.dev-main-loc{font-size:11px;display:flex;align-items:center;gap:4px;margin-top:2px;}
+.dark .dev-main-loc{color:#888;}
+.light .dev-main-loc{color:#aaa;}
+.dev-main-row{display:flex;align-items:center;gap:12px;margin-top:10px;}
+.dev-band{flex:1;}
+.dev-badge-connected{background:#1a3a2e;color:#5DCAA5;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;}
+.light .dev-badge-connected{background:#e1f5ee;}
+.dev-stats{display:flex;gap:16px;margin-top:12px;}
+.dev-stat{display:flex;align-items:center;gap:6px;font-size:12px;}
+.dark .dev-stat{color:#aaa;}
+.light .dev-stat{color:#666;}
+.dev-stat i{font-size:16px;color:#5DCAA5;}
+
+.dev-card{margin:0 12px 8px;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;}
+.dark .dev-card{background:#252538;}
+.light .dev-card{background:#fff;border:0.5px solid #e0e0da;}
+.dev-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.dev-name{font-size:13px;font-weight:700;}
+.dark .dev-name{color:#fff;}
+.light .dev-name{color:#1D1D2E;}
+.dev-loc{font-size:10px;margin-top:2px;display:flex;align-items:center;gap:3px;}
+.dark .dev-loc{color:#888;}
+.light .dev-loc{color:#aaa;}
+.dev-right{margin-left:auto;text-align:right;}
+.dev-bat{font-size:13px;font-weight:700;display:flex;align-items:center;gap:4px;justify-content:flex-end;}
+.bat-green{color:#5DCAA5;}
+.bat-yellow{color:#EF9F27;}
+.bat-red{color:#E24B4A;}
+.dev-status{font-size:10px;margin-top:2px;font-weight:600;}
+.dev-act{font-size:10px;margin-top:2px;}
+.dark .dev-act{color:#666;}
+.light .dev-act{color:#bbb;}
+
+.coverage-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 12px 14px;}
+.cov-card{border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.dark .cov-card{background:#252538;}
+.light .cov-card{background:#fff;border:0.5px solid #e0e0da;}
+.cov-icon{font-size:22px;}
+.cov-name{font-size:11px;font-weight:600;}
+.dark .cov-name{color:#fff;}
+.light .cov-name{color:#1D1D2E;}
+.cov-status{font-size:10px;display:flex;align-items:center;gap:4px;font-weight:600;}
+.cov-active{color:#5DCAA5;}
+.cov-none{color:#888;}
+
+/* ADD SOUND STEPS */
+.sound-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:8px 16px;flex:1;}
+.sg-item{border-radius:14px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;border:2px solid transparent;}
+.dark .sg-item{background:#252538;}
+.light .sg-item{background:#fff;border-color:#e0e0da;}
+.sg-item.selected{border-color:#5DCAA5!important;}
+.sg-icon{font-size:28px;}
+.sg-label{font-size:12px;font-weight:600;}
+.dark .sg-label{color:#fff;}
+.light .sg-label{color:#1D1D2E;}
+
+.rec-area{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:20px;}
+.rec-circle{width:120px;height:120px;border-radius:50%;border:2px solid #5DCAA5;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.dark .rec-circle{background:#1a2e26;}
+.light .rec-circle{background:#e1f5ee;}
+.rec-timer{font-size:24px;font-weight:700;color:#5DCAA5;margin:10px 0;}
+.btn-stop{border:none;border-radius:12px;padding:12px 36px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;margin-top:6px;}
+.dark .btn-stop{background:#252538;color:#5DCAA5;}
+.light .btn-stop{background:#e0e0da;color:#0F6E56;}
+
+.review-area{display:flex;flex-direction:column;align-items:center;padding:12px 16px;flex:1;}
+.check-circle{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
+.dark .check-circle{background:#1a3a2e;}
+.light .check-circle{background:#e1f5ee;}
+.check-circle i{font-size:28px;color:#5DCAA5;}
+.waveform{width:100%;height:50px;border-radius:12px;margin:10px 0 6px;display:flex;align-items:center;justify-content:center;gap:2px;padding:8px;}
+.dark .waveform{background:#252538;}
+.light .waveform{background:#ebebE5;}
+.wf-bar{border-radius:2px;background:#5DCAA5;}
+.play-row{display:flex;align-items:center;width:100%;gap:10px;margin-bottom:4px;}
+.play-btn{width:32px;height:32px;border-radius:50%;background:#5DCAA5;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.play-btn i{font-size:14px;color:#fff;}
+.field-label{font-size:11px;margin-top:10px;margin-bottom:4px;align-self:flex-start;font-weight:600;}
+.dark .field-label{color:#888;}
+.light .field-label{color:#aaa;}
+.field-input{width:100%;border-radius:10px;padding:10px 12px;font-size:13px;outline:none;}
+.dark .field-input{background:#252538;color:#fff;border:0.5px solid #5DCAA5;}
+.light .field-input{background:#fff;color:#1D1D2E;border:0.5px solid #5DCAA5;}
+.field-select{width:100%;border-radius:10px;padding:10px 12px;font-size:13px;outline:none;appearance:none;cursor:pointer;}
+.dark .field-select{background:#252538;color:#fff;border:0.5px solid rgba(255,255,255,0.12);}
+.light .field-select{background:#fff;color:#1D1D2E;border:0.5px solid #ddd;}
+
+.alert-content{padding:4px 16px;flex:1;overflow-y:auto;}
+.alert-content::-webkit-scrollbar{width:0;}
+.radio-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;margin-bottom:6px;cursor:pointer;}
+.dark .radio-row{background:#252538;}
+.light .radio-row{background:#fff;border:0.5px solid #e0e0da;}
+.radio-dot{width:18px;height:18px;border-radius:50%;border:2px solid #5DCAA5;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.radio-dot.sel::after{content:'';width:8px;height:8px;border-radius:50%;background:#5DCAA5;display:block;}
+.radio-lbl{font-size:13px;}
+.dark .radio-lbl{color:#fff;}
+.light .radio-lbl{color:#1D1D2E;}
+.radio-hint{font-size:10px;margin-left:auto;color:#5DCAA5;letter-spacing:1px;}
+.priority-row{display:flex;gap:8px;margin-bottom:12px;}
+.pri-btn{flex:1;padding:8px 4px;border-radius:10px;border:1.5px solid transparent;font-size:11px;font-weight:700;cursor:pointer;text-align:center;}
+.pri-btn.baja{border-color:#5DCAA5;color:#0F6E56;background:#e1f5ee;}
+.pri-btn.media{border-color:#EF9F27;color:#7a4e00;background:#fff3d9;}
+.pri-btn.alta{border-color:#F07030;color:#7a3000;background:#fff0e8;}
+.pri-btn.critica{border-color:#E24B4A;color:#7a1010;background:#fff0f0;}
+.pri-btn:not(.sel-pri){opacity:0.45;}
+.pulsera-row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;cursor:pointer;}
+.dark .pulsera-row{background:#252538;}
+.light .pulsera-row{background:#fff;border:0.5px solid #e0e0da;}
+.pulsera-name{font-size:14px;font-weight:600;}
+.dark .pulsera-name{color:#fff;}
+.light .pulsera-name{color:#1D1D2E;}
+
+.train-area{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:20px 24px;text-align:center;}
+.step-dots{display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
+.sdot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.sdot.done,.sdot.current{background:#5DCAA5;color:#fff;}
+.dark .sdot.pending{background:#2a2a3e;color:#666;}
+.light .sdot.pending{background:#ddd;color:#aaa;}
+.sline{width:30px;height:2px;flex-shrink:0;}
+.sline.done{background:#5DCAA5;}
+.dark .sline.pending{background:#2a2a3e;}
+.light .sline.pending{background:#ddd;}
+.train-circle{width:100px;height:100px;border-radius:50%;border:2px solid #5DCAA5;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+.dark .train-circle{background:#1a3a2e;}
+.light .train-circle{background:#e1f5ee;}
+.train-circle i{font-size:42px;color:#5DCAA5;}
+.train-title{font-size:15px;font-weight:700;}
+.dark .train-title{color:#fff;}
+.light .train-title{color:#1D1D2E;}
+.train-desc{font-size:11px;margin-top:6px;line-height:1.6;}
+.dark .train-desc{color:#888;}
+.light .train-desc{color:#999;}
+
+/* MODAL / DIALOG */
+.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.6);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal-box{width:100%;border-radius:20px 20px 0 0;padding:20px;max-height:80%;}
+.dark .modal-box{background:#252538;}
+.light .modal-box{background:#fff;}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:4px;}
+.dark .modal-title{color:#fff;}
+.light .modal-title{color:#1D1D2E;}
+.modal-desc{font-size:12px;line-height:1.5;margin-bottom:16px;}
+.dark .modal-desc{color:#888;}
+.light .modal-desc{color:#aaa;}
+.modal-btns{display:flex;gap:10px;}
+.modal-btn-cancel{flex:1;padding:12px;border-radius:12px;border:none;font-size:13px;font-weight:700;cursor:pointer;}
+.dark .modal-btn-cancel{background:#1D1D2E;color:#aaa;}
+.light .modal-btn-cancel{background:#f0f0ea;color:#555;}
+.modal-btn-danger{flex:1;padding:12px;border-radius:12px;border:none;background:#E24B4A;color:#fff;font-size:13px;font-weight:700;cursor:pointer;}
+
+/* DEVICE SCANNER */
+.scan-area{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:20px;}
+.scan-circle{width:120px;height:120px;border-radius:50%;border:2px dashed #5DCAA5;display:flex;align-items:center;justify-content:center;margin-bottom:16px;animation:spin 3s linear infinite;}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.scan-inner{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.dark .scan-inner{background:#1a3a2e;}
+.light .scan-inner{background:#e1f5ee;}
+.scan-inner i{font-size:36px;color:#5DCAA5;}
+.dev-result-card{margin:0 16px 8px;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;border:2px solid transparent;}
+.dark .dev-result-card{background:#252538;}
+.light .dev-result-card{background:#fff;border-color:#e0e0da;}
+.dev-result-card.selected{border-color:#5DCAA5;}
+</style>
+<link rel="stylesheet" href="styles.css"/>
+</head>
+<body class="dark">
+
+<div class="top-bar" aria-hidden="true">
+  <div class="brand">SENSO PULSO</div>
+  <div class="toggle-wrap">
+    <span class="toggle-lbl">Oscuro</span>
+    <button class="sw" id="sw" onclick="toggleMode()" aria-label="cambiar modo">
+      <div class="sw-knob" id="sw-knob" style="left:3px;"></div>
+    </button>
+    <span class="toggle-lbl">Claro</span>
+  </div>
+</div>
+
+<div class="phone dark" id="phone">
+ <div class="screen" id="screen">
+
+  <!-- ===== INICIO ===== -->
+  <div class="view active" id="v-home">
+   <div class="topbar">
+    <div class="greeting-name">¡Hola! 👋</div>
+    <div class="topbar-icons">
+     <button type="button" class="tb-icon icon-button" onclick="requestFullScreen()" aria-label="Pantalla completa" title="Pantalla completa"><i class="ti ti-arrows-maximize"></i></button>
+     <button type="button" class="tb-icon icon-button" onclick="toggleMode()" aria-label="Cambiar tema"><i class="ti ti-sun" id="theme-icon"></i></button>
+     <button type="button" class="tb-icon bell-wrap icon-button" onclick="goTo('v-historial')" aria-label="Ver historial"><i class="ti ti-bell"></i><div class="notif-dot" id="bell-dot"></div></button>
+    </div>
+   </div>
+   <div class="connected"><div class="dot-green"></div><span>Modo demostración · sin pulsera conectada</span></div>
+   <div class="scrollable">
+    <div class="card battery-card">
+     <div>
+      <div class="bat-pct" id="home-battery">85%</div>
+      <div class="bat-label">Batería simulada</div>
+      <div class="bat-bar-bg"><div class="bat-bar"></div></div>
+      <div class="bat-sync"><i class="ti ti-refresh" style="font-size:12px;"></i> Valor de ejemplo (no medido)</div>
+     </div>
+     <svg width="90" height="66" viewBox="0 0 90 66">
+      <rect x="8" y="22" width="74" height="22" rx="11" fill="#252538" stroke="#5DCAA5" stroke-width="1.2"/>
+      <rect x="2" y="28" width="12" height="10" rx="4" fill="#1e1e30"/>
+      <rect x="76" y="28" width="12" height="10" rx="4" fill="#1e1e30"/>
+      <path d="M18 33 Q24 24 30 33 Q36 42 42 33 Q48 24 54 33 Q60 42 66 33 Q70 28 74 33" stroke="#5DCAA5" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+     </svg>
+    </div>
+    <div class="card sound-row" onclick="goTo('v-historial')">
+     <div class="s-icon">🔔</div>
+     <div style="flex:1;">
+      <div class="s-lbl">Última alerta de prueba</div>
+      <div class="s-name" id="home-event-name">Sin eventos todavía</div>
+      <div class="s-time" id="home-event-time">Prueba una alerta desde Sonidos</div>
+     </div>
+     <i class="ti ti-chevron-right chev"></i>
+    </div>
+    <div class="quick-grid">
+     <div class="quick-card" onclick="goTo('v-sonidos')">
+      <div class="qc-icon"><i class="ti ti-wave-sine" style="color:#5DCAA5;"></i></div>
+      <div class="qc-title">Sonidos <i class="ti ti-chevron-right" style="font-size:12px;color:#5DCAA5;"></i></div>
+      <div class="qc-desc">Administra y personaliza los sonidos que te importan.</div>
+     </div>
+     <div class="quick-card" onclick="goTo('v-dispositivos')">
+      <div class="qc-icon"><i class="ti ti-bluetooth" style="color:#8888AA;"></i></div>
+      <div class="qc-title">Dispositivos <i class="ti ti-chevron-right" style="font-size:12px;color:#8888AA;"></i></div>
+      <div class="qc-desc">Administra dispositivos simulados para la demostración.</div>
+     </div>
+    </div>
+    <div class="status-row">
+     <div class="st-icon"><i class="ti ti-shield-check" style="color:#5DCAA5;font-size:20px;"></i></div>
+     <div style="flex:1;"><div class="st-title">Demostración interactiva</div><div class="st-desc">Puedes crear sonidos, grabar muestras y probar vibraciones; no hay detección automática ni conexión real.</div></div>
+     <div class="wave-txt">∿∿∿</div>
+    </div>
+   </div>
+   <div class="bottomnav">
+    <div class="nav-item active" onclick="goTo('v-home')"><i class="ti ti-home"></i><span>Inicio</span></div>
+    <div class="nav-item" onclick="goTo('v-sonidos')"><i class="ti ti-wave-sine"></i><span>Sonidos</span></div>
+    <div style="flex:1;display:flex;justify-content:center;"><div class="nav-center" onclick="goTo('v-add1')"><i class="ti ti-plus"></i></div></div>
+    <div class="nav-item" onclick="goTo('v-dispositivos')"><i class="ti ti-device-mobile"></i><span>Dispositivos</span></div>
+    <div class="nav-item" onclick="goTo('v-historial')"><i class="ti ti-clock"></i><span>Historial</span></div>
+   </div>
+  </div>
+
+  <!-- ===== SONIDOS ===== -->
+  <div class="view" id="v-sonidos">
+   <div class="step-header">
+    <div class="step-title" style="font-size:22px;">Sonidos</div>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:6px;">
+     <button type="button" class="tb-icon icon-button" onclick="toggleSoundQuickFilter()" aria-label="Alternar filtro de sonidos activos" title="Mostrar solo activos"><i class="ti ti-adjustments-horizontal"></i></button>
+    </div>
+   </div>
+   <div id="sonidos-subtitle" style="font-size:12px;padding:0 16px 8px;"></div>
+   <div class="search-bar"><i class="ti ti-search"></i><input id="sound-search" type="search" placeholder="Buscar sonido" oninput="filterSounds(this.value)"/></div>
+   <div class="filter-row">
+    <button class="chip active" onclick="filterChip(this,'todos')">Todos</button>
+    <div class="chip" onclick="filterChip(this,'activos')">Activos</div>
+    <div class="chip emergencia" onclick="filterChip(this,'emergencia')">Emergencia</div>
+    <div class="chip hogar" onclick="filterChip(this,'hogar')">Hogar</div>
+    <div class="chip personalizados" onclick="filterChip(this,'personalizados')">Personalizados</div>
+   </div>
+   <div class="scrollable" id="sonidos-list"></div>
+   <div class="bottomnav">
+    <div class="nav-item" onclick="goTo('v-home')"><i class="ti ti-home"></i><span>Inicio</span></div>
+    <div class="nav-item active"><i class="ti ti-wave-sine"></i><span>Sonidos</span></div>
+    <div style="flex:1;display:flex;justify-content:center;"><div class="nav-center" onclick="goTo('v-add1')"><i class="ti ti-plus"></i></div></div>
+    <div class="nav-item" onclick="goTo('v-dispositivos')"><i class="ti ti-device-mobile"></i><span>Dispositivos</span></div>
+    <div class="nav-item" onclick="goTo('v-historial')"><i class="ti ti-clock"></i><span>Historial</span></div>
+   </div>
+  </div>
+
+  <!-- ===== HISTORIAL FUNCIONAL ===== -->
+<div class="view" id="v-historial">
+ <div class="step-header"><div><div class="step-title" style="font-size:22px;">Historial</div><div class="s-lbl">Eventos de prueba registrados en este dispositivo</div></div><button class="tb-icon icon-button" title="Exportar historial" aria-label="Exportar historial" onclick="exportHistory()"><i class="ti ti-download"></i></button></div>
+ <div class="search-bar"><i class="ti ti-search"></i><input id="history-search" type="search" placeholder="Buscar evento o ubicación" oninput="renderHistory()"/><button class="icon-button flat" onclick="confirmClearHistory()" aria-label="Limpiar historial" title="Limpiar historial"><i class="ti ti-trash"></i></button></div>
+ <div class="filter-row" id="history-filters">
+   <button class="chip active" data-filter="todos" onclick="setHistoryFilter(this)">Todos</button>
+   <button class="chip" data-filter="hoy" onclick="setHistoryFilter(this)">Hoy</button>
+   <button class="chip emergencia" data-filter="emergencia" onclick="setHistoryFilter(this)">Emergencia</button>
+   <button class="chip hogar" data-filter="hogar" onclick="setHistoryFilter(this)">Hogar</button>
+ </div>
+ <div class="scrollable" id="historial-list"></div>
+ <div class="bottomnav">
+  <div class="nav-item" onclick="goTo('v-home')"><i class="ti ti-home"></i><span>Inicio</span></div><div class="nav-item" onclick="goTo('v-sonidos')"><i class="ti ti-wave-sine"></i><span>Sonidos</span></div>
+  <div style="flex:1;display:flex;justify-content:center;"><div class="nav-center" onclick="goTo('v-add1')"><i class="ti ti-plus"></i></div></div>
+  <div class="nav-item" onclick="goTo('v-dispositivos')"><i class="ti ti-device-mobile"></i><span>Dispositivos</span></div><div class="nav-item active"><i class="ti ti-clock"></i><span>Historial</span></div>
+ </div>
+</div>
+<!-- DETALLE DE EVENTO -->
+<div class="view" id="v-hist-detail">
+ <div class="step-header"><button class="back-btn icon-button" onclick="goTo('v-historial')" aria-label="Volver"><i class="ti ti-arrow-left"></i></button><div class="step-title">Detalle del evento</div></div>
+ <div class="scrollable" id="history-detail-content" style="padding:12px 16px;"></div>
+</div>
+
+  <!-- ===== DISPOSITIVOS DE DEMOSTRACIÓN ===== -->
+<div class="view" id="v-dispositivos">
+ <div class="step-header"><div><div class="step-title" style="font-size:22px;">Dispositivos</div><div class="s-lbl">Conexiones de demostración, no Bluetooth real</div></div><button class="tb-icon icon-button" onclick="goTo('v-dev-scan')" aria-label="Añadir dispositivo"><i class="ti ti-plus"></i></button></div>
+ <div class="scrollable" id="devices-list"></div>
+ <div class="bottomnav"><div class="nav-item" onclick="goTo('v-home')"><i class="ti ti-home"></i><span>Inicio</span></div><div class="nav-item" onclick="goTo('v-sonidos')"><i class="ti ti-wave-sine"></i><span>Sonidos</span></div><div style="flex:1;display:flex;justify-content:center;"><div class="nav-center" onclick="goTo('v-dev-scan')"><i class="ti ti-plus"></i></div></div><div class="nav-item active"><i class="ti ti-device-mobile"></i><span>Dispositivos</span></div><div class="nav-item" onclick="goTo('v-historial')"><i class="ti ti-clock"></i><span>Historial</span></div></div>
+</div>
+<div class="view" id="v-dev-scan">
+ <div class="step-header"><button class="back-btn icon-button" onclick="goTo('v-dispositivos')" aria-label="Volver"><i class="ti ti-arrow-left"></i></button><div class="step-title">Añadir dispositivo demo</div></div>
+ <div class="scrollable" style="padding:16px;">
+  <div class="demo-note">Estos equipos son ejemplos para probar la interfaz. No se busca ni enlaza hardware real.</div>
+  <div class="sec-lbl" style="padding-left:0;margin-top:18px;">Dispositivos disponibles</div>
+  <div id="device-candidates"></div>
+  <label class="field-label" for="new-device-name">O crear uno personalizado</label>
+  <input class="field-input" id="new-device-name" maxlength="50" placeholder="Ej. Micrófono Oficina"/>
+  <label class="field-label" for="new-device-location">Ubicación</label>
+  <input class="field-input" id="new-device-location" maxlength="60" placeholder="Ej. Oficina"/>
+  <button class="btn-main contained" onclick="addCustomDevice()">Añadir dispositivo de prueba</button>
+ </div>
+</div>
+
+  <!-- ===== ADD SONIDO PASO 1 ===== -->
+  <div class="view" id="v-add1">
+   <div class="step-header">
+    <div class="back-btn" onclick="goTo('v-home')"><i class="ti ti-arrow-left"></i></div>
+    <div class="step-title">Añadir sonido</div>
+   </div>
+   <div style="text-align:center;padding:6px 16px 0;">
+    <i class="ti ti-wave-sine" style="font-size:28px;color:#5DCAA5;"></i>
+    <div style="font-size:14px;font-weight:700;margin-top:4px;" class="s-name">¿Qué sonido deseas registrar?</div>
+    <div style="font-size:11px;margin-top:3px;" class="s-lbl">Puedes elegir una categoría o crear una personalizada.</div>
+   </div>
+   <div class="sound-grid">
+    <div class="sg-item" id="sg-timbre" onclick="selectSound('Timbre','sg-timbre','🔔','hogar')"><div class="sg-icon">🔔</div><div class="sg-label">Timbre</div></div>
+    <div class="sg-item" id="sg-bebe" onclick="selectSound('Bebé','sg-bebe','👶','hogar')"><div class="sg-icon">👶</div><div class="sg-label">Bebé</div></div>
+    <div class="sg-item" id="sg-emergencia" onclick="selectSound('Emergencia','sg-emergencia','🚨','emergencia')"><div class="sg-icon">🚨</div><div class="sg-label">Emergencia</div></div>
+    <div class="sg-item" id="sg-llamada" onclick="selectSound('Llamada','sg-llamada','📞','hogar')"><div class="sg-icon">📞</div><div class="sg-label">Llamada</div></div>
+    <div class="sg-item" id="sg-vehiculo" onclick="selectSound('Vehículo','sg-vehiculo','🚗','hogar')"><div class="sg-icon">🚗</div><div class="sg-label">Vehículo</div></div>
+    <div class="sg-item" id="sg-custom" onclick="selectSound('Personalizado','sg-custom','⭐','personalizados')"><div class="sg-icon" style="color:#5DCAA5;font-size:22px;"><i class="ti ti-plus"></i></div><div class="sg-label">Personalizado</div></div>
+   </div>
+   <button class="btn-main" id="btn-add1" onclick="goTo('v-add2')" disabled>Siguiente</button>
+  </div>
+
+  <!-- ADD PASO 2: GRABACIÓN -->
+  <div class="view" id="v-add2">
+   <div class="step-header">
+    <div class="back-btn" onclick="cancelRecording()"><i class="ti ti-arrow-left"></i></div>
+    <div class="step-title">Grabar sonido</div>
+   </div>
+   <div class="rec-area">
+    <div class="rec-circle"><i class="ti ti-microphone" style="font-size:42px;color:#5DCAA5;"></i></div>
+    <div style="font-size:20px;color:#5DCAA5;letter-spacing:2px;margin-bottom:6px;">∿ ∿ ∿ ∿ ∿</div>
+    <div style="font-size:15px;font-weight:700;" class="s-name" id="record-status">Listo para grabar</div>
+    <div style="font-size:11px;text-align:center;margin-top:4px;line-height:1.5;" class="s-lbl">Acerca la fuente sonora al micrófono<br>y mantén el ambiente en silencio.</div>
+    <div class="rec-timer" id="rec-timer">00:00</div>
+    <button class="btn-main contained" id="record-start" onclick="startRecording()"><i class="ti ti-microphone"></i> Iniciar grabación</button>
+    <button class="btn-stop" id="record-stop" onclick="stopRecording(true)" disabled><i class="ti ti-player-stop" style="font-size:16px;"></i> Detener y revisar</button>
+    <div class="s-lbl" style="text-align:center;padding:10px 15px;">Se solicitará permiso al micrófono. Audio máximo: 30 segundos. No se sube a ningún servidor.</div>
+    <button class="btn-secondary" onclick="cancelRecording()">Cancelar</button>
+   </div>
+  </div>
+
+  <!-- ADD PASO 3: REVISAR -->
+  <div class="view" id="v-add3">
+   <div class="step-header">
+    <div class="back-btn" onclick="goTo('v-add2')"><i class="ti ti-arrow-left"></i></div>
+    <div class="step-title">Revisar sonido</div>
+   </div>
+   <div class="review-area">
+    <div class="check-circle"><i class="ti ti-check"></i></div>
+    <div style="font-size:15px;font-weight:700;" class="s-name">Grabación completada</div>
+    <div style="font-size:11px;margin-top:2px;" class="s-lbl">Así suena tu sonido:</div>
+    <div class="waveform" id="waveform-bars"></div>
+    <div class="play-row"><button type="button" class="play-btn icon-button" onclick="playPendingRecording()" aria-label="Reproducir grabación"><i class="ti ti-player-play"></i></button><div style="font-size:11px;margin-left:auto;" class="s-lbl" id="record-duration">00:00</div></div>
+    <div class="field-label">Nombre del sonido</div>
+    <input class="field-input" type="text" id="sound-name-input" placeholder="Nombre del sonido"/>
+    <div class="field-label">Ubicación (opcional)</div>
+    <select class="field-select" id="ubicacion-select" onchange="handleUbicacion(this)">
+     <option value="puerta">Puerta principal</option>
+     <option value="sala">Sala</option>
+     <option value="cocina">Cocina</option>
+     <option value="habitacion">Habitación</option>
+     <option value="personalizado">Personalizado...</option>
+    </select>
+    <div id="custom-ubicacion-wrap" style="display:none;width:100%;margin-top:6px;">
+     <input class="field-input" type="text" placeholder="Escribe la ubicación..." id="custom-ubicacion-input"/>
+    </div>
+   </div>
+   <button class="btn-main" onclick="validateSoundDetails()">Siguiente</button>
+  </div>
+
+  <!-- ADD PASO 4: CONFIGURAR ALERTA -->
+  <div class="view" id="v-add4">
+   <div class="step-header">
+    <div class="back-btn" onclick="goTo('v-add3')"><i class="ti ti-arrow-left"></i></div>
+    <div class="step-title">Configurar alerta</div>
+   </div>
+   <div class="alert-content">
+    <div class="sec-lbl" style="padding-left:0;">Tipo de vibración</div>
+    <div class="radio-row" onclick="selVib(this)"><div class="radio-dot"></div><div class="radio-lbl">Pulso corto</div><div class="radio-hint">· —</div></div>
+    <div class="radio-row" onclick="selVib(this)"><div class="radio-dot sel"></div><div class="radio-lbl">Doble pulso</div><div class="radio-hint">· · —</div></div>
+    <div class="radio-row" onclick="selVib(this)"><div class="radio-dot"></div><div class="radio-lbl">Pulso largo</div><div class="radio-hint">——</div></div>
+    <div class="radio-row" onclick="selVib(this)"><div class="radio-dot"></div><div class="radio-lbl">Continua</div><div class="radio-hint">∼∼∼</div></div>
+    <div class="radio-row" onclick="selVib(this)"><div class="radio-dot"></div><div class="radio-lbl">Personalizada</div><i class="ti ti-chevron-right" style="font-size:15px;color:#5DCAA5;margin-left:auto;"></i></div>
+    <div id="custom-vibration-wrapper" style="display:none;">
+      <label class="field-label" for="custom-vibration">Patrón (milisegundos separados por comas)</label>
+      <input id="custom-vibration" class="field-input" value="150,100,150" placeholder="150,100,150"/>
+     </div>
+     <button class="btn-secondary" type="button" onclick="testCurrentVibration()">Probar vibración en este celular</button>
+     <div class="sec-lbl" style="padding-left:0;margin-top:10px;">Prioridad</div>
+    <div class="priority-row">
+     <div class="pri-btn baja sel-pri" onclick="selPri(this)">Baja</div>
+     <div class="pri-btn media" onclick="selPri(this)">Media</div>
+     <div class="pri-btn alta" onclick="selPri(this)">Alta</div>
+     <div class="pri-btn critica" onclick="selPri(this)">Crítica</div>
+    </div>
+    <div class="sec-lbl" style="padding-left:0;">Pantalla de la pulsera</div>
+    <button type="button" class="pulsera-row" onclick="showBandPreview()" aria-label="Ver vista previa en pulsera simulada" style="width:100%;border:0;text-align:left;cursor:pointer;">
+     <span style="font-size:22px;" id="add4-icon">🔔</span>
+     <div class="pulsera-name" id="add4-name">Timbre</div>
+     <i class="ti ti-chevron-right" style="font-size:15px;color:#5DCAA5;margin-left:auto;"></i>
+    </button>
+   </div>
+   <button class="btn-main" onclick="saveSound()">Guardar sonido</button>
+  </div>
+
+  <!-- CONFIRMACIÓN / MUESTRAS -->
+<div class="view" id="v-add5">
+ <div class="step-header"><div class="step-title">Sonido guardado</div></div>
+ <div class="train-area"><div class="train-circle"><i class="ti ti-check"></i></div><div class="train-title" id="saved-sound-title">¡Grabación guardada!</div><div class="train-desc" id="saved-sound-desc">La muestra se guardó en este navegador. No se ha entrenado un modelo de reconocimiento automático.</div>
+ <div class="demo-note" style="margin-top:20px;">Puedes practicar las alertas mediante «Probar alerta» en la biblioteca. Una grabación por sí sola no permite detectar sonidos automáticamente.</div></div>
+ <button class="btn-main" onclick="goTo('v-sonidos')">Ver mis sonidos</button>
+ <div style="text-align:center;"><button class="btn-secondary" onclick="goTo('v-add1')">Añadir otro sonido</button></div>
+ <div style="height:14px;"></div>
+</div>
+
+  </div><!-- /screen -->
+</div><!-- /phone -->
+
+<div class="footer-info">SENSO PULSO · Demostración, no sistema de alerta de emergencias</div>
+
+<div id="app-modal" class="app-modal-overlay" hidden>
+ <div class="app-modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+  <div class="modal-title" id="modal-heading">Editar</div>
+  <div id="modal-body"></div>
+  <div class="modal-btns"><button type="button" class="modal-btn-cancel" onclick="closeAppModal()">Cancelar</button><button type="button" class="btn-main" id="modal-save">Guardar</button></div>
+ </div>
+</div>
+<div id="app-toast" class="app-toast" role="status" aria-live="polite"></div>
+<script src="app.js" defer></script>
+
+</body>
+</html>

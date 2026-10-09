@@ -1,0 +1,47 @@
+SENSO PULSO — Versión interactiva para Netlify y GitHub Pages
+
+QUÉ FUNCIONA
+- Se adapta al tamaño del celular, sin el marco decorativo.
+- Navegación entre pantallas, tema oscuro/claro y botón de pantalla completa compatible.
+- Graba una muestra real desde el micrófono con permiso (HTTPS obligatorio).
+- Reproduce la muestra grabada; guarda metadatos en localStorage y audio en IndexedDB.
+- Biblioteca de sonidos: crear, editar, duplicar, eliminar, activar/desactivar y buscar/filtrar.
+- Patrones de vibración de prueba compatibles con algunos teléfonos Android.
+- Alertas de prueba manuales, historial filtrable y exportación CSV.
+- Dispositivos de demostración: agregar, renombrar, conectar/desconectar y eliminar (SIMULADOS).
+- Se puede agregar a la pantalla de inicio como PWA en navegadores compatibles.
+
+QUÉ TODAVÍA NO HACE
+- NO reconoce automáticamente sonidos del entorno; no incluye modelo de IA entrenado.
+- NO enlaza dispositivos Bluetooth ni pulseras reales.
+- NO reemplaza sistemas de seguridad o emergencias.
+- Los datos se quedan en el navegador/dispositivo que los creó; no sincronizan entre teléfonos.
+- Los permisos, almacenamiento, vibración y pantalla completa dependen del navegador.
+- Abrir desde un QR NO oculta automáticamente las barras de Chrome. Usa el botón de pantalla completa cuando esté disponible.
+
+PUBLICAR EN NETLIFY
+1. Descomprime el ZIP.
+2. En Netlify, entra al proyecto ya publicado > Deploys.
+3. Arrastra la carpeta SENSO_PULSO_MEJORADO completa al área de carga manual.
+4. Espera la publicación. Tu enlace existente podrá seguir siendo el mismo.
+5. Abre la web con HTTPS y permite acceso al micrófono si deseas grabar.
+
+PUBLICAR EN GITHUB PAGES
+1. Crea un repositorio público en GitHub.
+2. Sube TODOS los archivos de esta carpeta a la raíz del repositorio (index.html, app.js,
+   styles.css, manifest.webmanifest, service-worker.js, icon.svg y los dos PNG).
+3. En Settings > Pages, elige Deploy from a branch, main y /(root), guarda.
+4. Espera a que GitHub publique el enlace. GitHub Pages ofrece HTTPS.
+
+NOTA SOBRE ACTUALIZACIONES
+- Los archivos de una publicación anterior deben sustituirse por TODOS los archivos de esta versión.
+- Si ves la versión antigua, refresca la página; si hace falta, limpia los datos del sitio.
+- No limpies los datos del sitio si quieres conservar sonidos e historial locales.
+
+ESTRUCTURA
+index.html               Pantallas y diseño de base
+styles.css               Adaptación a móvil y ajustes visuales
+app.js                   Lógica de la aplicación
+manifest.webmanifest     Instalación como PWA
+service-worker.js        Caché básico de archivos para uso offline parcial
+icon.svg, icon-192.png, icon-512.png  Iconos
